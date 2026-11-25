@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>カラーパレット</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+/*
+VOICE: 画材屋の棚のように明るく、道具として素直
+IDEA: 絵の具パレット。系統ごとに1枚、横にスワイプして持ち替える
+PICTURE: 50個の丸い絵の具のくぼみ自体が主役
+COLOUR and TYPE: 白い陶器のパレット地、文字は墨色、アクセントは選択中の系統の色。丸ゴシック＋等幅
+LAYOUT: 上に系統タブ、中央に横スクロールのパレット、下に前後ボタン
+*/
+:root{color-scheme:light dark;--bg:light-dark(#f4f2ee,#141414);--plate:light-dark(#ffffff,#1f1f1f);--ink:light-dark(#1d1b19,#f0eeea);--sub:light-dark(#6b6762,#a29e98);--line:light-dark(rgba(0,0,0,.08),rgba(255,255,255,.08));--accent:#d33}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "M PLUS Rounded 1c",system-ui,sans-serif;overflow-x:clip;-webkit-tap-highlight-color:transparent}
+header{padding:20px max(4vw,16px) 8px;max-width:1240px;margin:0 auto}
+h1{font-size:clamp(26px,4vw,36px);line-height:1.05;margin:0 0 4px;font-weight:800;display:flex;align-items:center;gap:12px}
+h1 .dot{width:22px;height:22px;border-radius:50%;background:var(--accent);flex:none;transition:background .3s}
+.hint{color:var(--sub);font-size:14px;margin:0 0 14px}
+.tabs{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 10px;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:none;display:flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;border-radius:999px;border:1px solid var(--line);background:var(--plate);color:var(--ink);font:500 15px/1 inherit;cursor:pointer}
+.tab i{width:14px;height:14px;border-radius:50%;display:block}
+.tab[aria-selected=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.tab:focus-visible,.well:focus-visible,.nav button:focus-visible{outline:3px solid #3b82f6;outline-offset:2px}
+.pages{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior-x:contain}
+.pages::-webkit-scrollbar{display:none}
+.page{flex:0 0 100%;scroll-snap-align:center;scroll-snap-stop:always;padding:6px max(4vw,16px) 16px}
+.plate{max-width:1240px;margin:0 auto;background:var(--plate);border-radius:28px;padding:clamp(14px,2.5vw,26px);border:1px solid var(--line)}
+.grid{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:clamp(6px,1vw,12px)}
+.well{aspect-ratio:4/3;border-radius:14px;border:1px solid var(--line);cursor:pointer;display:flex;align-items:flex-end;justify-content:center;padding:0 0 6px;font:500 9px/1 "JetBrains Mono",ui-monospace,monospace;letter-spacing:.02em;transition:transform .12s ease;box-shadow:inset 0 -6px 10px rgba(0,0,0,.06)}
+.well:hover{transform:translateY(-2px)}
+.well:active{transform:scale(.96)}
+.well.done{outline:3px solid var(--ink);outline-offset:2px}
+.nav{display:flex;align-items:center;justify-content:space-between;gap:12px;max-width:1240px;margin:0 auto;padding:4px max(4vw,16px) 28px}
+.nav button{min-height:44px;min-width:44px;padding:0 18px;border-radius:999px;border:1px solid var(--line);background:var(--plate);color:var(--ink);font:500 15px/1 inherit;cursor:pointer}
+.dots{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.dots span{width:8px;height:8px;border-radius:50%;background:var(--line);transition:background .2s,transform .2s}
+.dots span.on{background:var(--ink);transform:scale(1.3)}
+.toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,20px);opacity:0;background:var(--ink);color:var(--bg);padding:12px 20px;border-radius:999px;font-size:15px;display:flex;align-items:center;gap:10px;pointer-events:none;transition:opacity .2s,transform .2s;white-space:nowrap}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.toast i{width:18px;height:18px;border-radius:50%;border:1px solid rgba(128,128,128,.4)}
+.toast code{font-family:"JetBrains Mono",ui-monospace,monospace}
+.pop{position:fixed;z-index:10;pointer-events:none;transform:translate(-50%,-140%);background:var(--ink);color:var(--bg);font:500 12px/1 "JetBrains Mono",ui-monospace,monospace;padding:6px 10px;border-radius:999px;white-space:nowrap;animation:pop .9s ease forwards}
+@keyframes pop{0%{opacity:0;transform:translate(-50%,-100%)}15%{opacity:1;transform:translate(-50%,-150%)}75%{opacity:1}100%{opacity:0;transform:translate(-50%,-190%)}}
+@media(max-width:600px){.grid{grid-template-columns:repeat(5,minmax(0,1fr))}.well{font-size:8px;border-radius:12px;padding-bottom:4px}.nav .lbl{display:none}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<header>
+  <h1><span class="dot" id="dot"></span><span id="title">赤</span></h1>
+  <p class="hint">左右にスワイプで系統を切り替え、色をタップでコードをコピー</p>
+  <div class="tabs" id="tabs" role="tablist" aria-label="色の系統"></div>
+</header>
+<main class="pages" id="pages" aria-live="polite"></main>
+<div class="nav">
+  <button id="prev" aria-label="前の系統">‹ <span class="lbl">前へ</span></button>
+  <div class="dots" id="dots" aria-hidden="true"></div>
+  <button id="next" aria-label="次の系統"><span class="lbl">次へ</span> ›</button>
+</div>
+<div class="toast" id="toast" role="status"><i id="tsw"></i><span id="tmsg"></span></div>
+<script>
+{
+const fam=[["red","赤",0,85],["orange","オレンジ",28,90],["yellow","黄",52,92],["green","緑",120,55],["cyan","シアン",185,65],["blue","青",215,75],["purple","紫",270,55],["pink","ピンク",330,75],["brown","茶",25,40],["gray","グレー",0,0]];
+const N=50;
+const hex=(h,s,l)=>{s/=100;l/=100;const k=n=>(n+h/30)%12,a=s*Math.min(l,1-l),f=n=>l-a*Math.max(-1,Math.min(k(n)-3,Math.min(9-k(n),1)));return '#'+[f(0),f(8),f(4)].map(x=>Math.round(x*255).toString(16).padStart(2,'0')).join('').toUpperCase()};
+const tabs=document.getElementById('tabs'),pages=document.getElementById('pages'),dots=document.getElementById('dots');
+const mid=f=>hex(f[2],f[3],50);
+tabs.innerHTML=fam.map((f,i)=>`<button class="tab" role="tab" id="t-${f[0]}" data-i="${i}" aria-selected="false"><i style="background:${mid(f)}"></i>${f[1]}</button>`).join('');
+dots.innerHTML=fam.map(()=>'<span></span>').join('');
+pages.innerHTML=fam.map(f=>{
+  let w='';
+  for(let j=0;j<N;j++){const l=98-j*(93/(N-1));const x=hex(f[2],f[3],l);
+    w+=`<button class="well" data-hex="${x}" data-name="${f[1]}" style="background:${x};color:${l>55?'rgba(0,0,0,.4)':'rgba(255,255,255,.4)'}" aria-label="${f[1]} ${x}">${x.slice(1)}</button>`}
+  return `<section class="page" id="${f[0]}" aria-label="${f[1]}"><div class="plate"><div class="grid">${w}</div></div></section>`}).join('');
+let cur=0;
+const setCur=i=>{cur=i;const f=fam[i];
+  document.getElementById('title').textContent=f[1];
+  document.getElementById('dot').style.background=mid(f);
+  tabs.querySelectorAll('.tab').forEach((t,k)=>t.setAttribute('aria-selected',k===i));
+  dots.querySelectorAll('span').forEach((d,k)=>d.classList.toggle('on',k===i));
+  tabs.children[i].scrollIntoView({block:'nearest',inline:'nearest',behavior:'smooth'});
+  try{localStorage.setItem('palette-fam',f[0])}catch(e){}
+  if(location.hash!=='#'+f[0])history.replaceState(null,'','#'+f[0]);};
+const go=(i,smooth=true)=>{i=(i+fam.length)%fam.length;pages.scrollTo({left:i*pages.clientWidth,behavior:smooth?'smooth':'auto'});setCur(i)};
+let tm;pages.addEventListener('scroll',()=>{clearTimeout(tm);tm=setTimeout(()=>{const i=Math.round(pages.scrollLeft/pages.clientWidth);if(i!==cur)setCur(i)},80)});
+tabs.addEventListener('click',e=>{const t=e.target.closest('.tab');if(t)go(+t.dataset.i)});
+document.getElementById('prev').onclick=()=>go(cur-1);
+document.getElementById('next').onclick=()=>go(cur+1);
+document.addEventListener('keydown',e=>{if(e.key==='ArrowLeft')go(cur-1);if(e.key==='ArrowRight')go(cur+1)});
+window.addEventListener('resize',()=>pages.scrollTo({left:cur*pages.clientWidth}));
+const toast=document.getElementById('toast');let tt;
+const show=(x,msg)=>{document.getElementById('tsw').style.background=x;document.getElementById('tmsg').innerHTML=msg;toast.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>toast.classList.remove('show'),1600)};
+const fallback=x=>{const t=document.createElement('textarea');t.value=x;t.style.position='fixed';t.style.opacity='0';document.body.appendChild(t);t.select();let ok=false;try{ok=document.execCommand('copy')}catch(e){}t.remove();return ok};
+pages.addEventListener('click',async e=>{const b=e.target.closest('.well');if(!b)return;const x=b.dataset.hex;let ok=false;
+  try{await navigator.clipboard.writeText(x);ok=true}catch(err){ok=fallback(x)}
+  document.querySelectorAll('.well.done').forEach(w=>w.classList.remove('done'));b.classList.add('done');
+  document.querySelectorAll('.pop').forEach(p=>p.remove());
+  const p=document.createElement('div');p.className='pop';p.textContent=ok?'Copied!':'Copy failed';
+  let cx=e.clientX,cy=e.clientY;if(!cx&&!cy){const r=b.getBoundingClientRect();cx=r.left+r.width/2;cy=r.top+r.height/2}
+  p.style.left=cx+'px';p.style.top=cy+'px';document.body.appendChild(p);
+  p.addEventListener('animationend',()=>p.remove())});
+const fromHash=()=>{const i=fam.findIndex(f=>'#'+f[0]===location.hash);return i};
+let start=fromHash();if(start<0){try{const s=localStorage.getItem('palette-fam');start=fam.findIndex(f=>f[0]===s)}catch(e){}}
+if(start<0)start=0;
+requestAnimationFrame(()=>go(start,false));
+window.addEventListener('hashchange',()=>{const i=fromHash();if(i>=0&&i!==cur)go(i)});
+}
+</script>
+</body>
+</html>
